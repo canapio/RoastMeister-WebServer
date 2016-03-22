@@ -33,6 +33,5 @@
     "express-session": "~1.0.0",
 
     "dateformat" : "latest",
-    "requestify" : "latest"
   }
 }
