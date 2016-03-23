@@ -181,3 +181,8 @@ body {
   margin: 0px;
   padding: 0px;
 }
+@media (min-width: 971px) {
+body {
+    padding-top: 50px;
+  }
+}

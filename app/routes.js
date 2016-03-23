@@ -57,6 +57,7 @@ module.exports = function(passport, connect) {
             res.render('autocomplete.ejs', {
               user : req.user,
               title : dbtitle,
+              usertitle : req.params.title,
               data : null,
               error : error
             });
@@ -65,6 +66,7 @@ module.exports = function(passport, connect) {
             res.render('autocomplete.ejs', {
               user : req.user,
               title : dbtitle,
+              usertitle : req.params.title,
               data : data,
               error : null
             });

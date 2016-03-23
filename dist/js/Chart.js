@@ -430,53 +430,20 @@
 					maxValue += 0.5;
 				}
 			}
-
 			var	valueRange = Math.abs(maxValue - minValue),
 				rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange),
-				graphMax = Math.ceil(maxValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
-				graphMin = (startFromZero) ? 0 : Math.floor(minValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
+				// graphMax = Math.ceil(maxValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
+				// graphMin = (startFromZero) ? 0 : Math.floor(minValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
+				graphMax = 8,
+				graphMin = 3,
 				graphRange = graphMax - graphMin,
 				stepValue = Math.pow(10, rangeOrderOfMagnitude),
 				numberOfSteps = Math.round(graphRange / stepValue);
-
-			//If we have more space on the graph we'll use it to give more definition to the data
-			while((numberOfSteps > maxSteps || (numberOfSteps * 2) < maxSteps) && !skipFitting) {
-				if(numberOfSteps > maxSteps){
-					stepValue *=2;
-					numberOfSteps = Math.round(graphRange/stepValue);
-					// Don't ever deal with a decimal number of steps - cancel fitting and just use the minimum number of steps.
-					if (numberOfSteps % 1 !== 0){
-						skipFitting = true;
-					}
-				}
-				//We can fit in double the amount of scale points on the scale
-				else{
-					//If user has declared ints only, and the step value isn't a decimal
-					if (integersOnly && rangeOrderOfMagnitude >= 0){
-						//If the user has said integers only, we need to check that making the scale more granular wouldn't make it a float
-						if(stepValue/2 % 1 === 0){
-							stepValue /=2;
-							numberOfSteps = Math.round(graphRange/stepValue);
-						}
-						//If it would make it a float break out of the loop
-						else{
-							break;
-						}
-					}
-					//If the scale doesn't have to be an int, make the scale more granular anyway.
-					else{
-						stepValue /=2;
-						numberOfSteps = Math.round(graphRange/stepValue);
-					}
-
-				}
-			}
 
 			if (skipFitting){
 				numberOfSteps = minSteps;
 				stepValue = graphRange / numberOfSteps;
 			}
-
 			return {
 				steps : numberOfSteps,
 				stepValue : stepValue,
@@ -1845,6 +1812,9 @@
 			this.drawingArea = (this.display) ? (this.size/2) - (this.fontSize/2 + this.backdropPaddingY) : (this.size/2);
 		},
 		calculateCenterOffset: function(value){
+			// console.log(this.max + ", " + this.min)
+			this.max = 8;
+			this.min = 3;
 			// Take into account half font size + the yPadding of the top value
 			var scalingFactor = this.drawingArea / (this.max - this.min);
 			// console.log(this.max + ", " + this.min)
@@ -1862,7 +1832,6 @@
 			this.yLabels = [];
 
 			var stepDecimalPlaces = getDecimalPlaces(this.stepValue);
-
 			for (var i=0; i<=this.steps; i++){
 				this.yLabels.push(template(this.templateString,{value:(this.min + (i * this.stepValue)).toFixed(stepDecimalPlaces)}));
 			}
@@ -3616,7 +3585,6 @@
 					this.options.scaleBeginAtZero,
 					this.options.scaleIntegersOnly
 				);
-
 			helpers.extend(
 				this.scale,
 				scaleSizes
@@ -3684,7 +3652,7 @@
 				//Transition each point first so that the line and point drawing isn't out of sync
 				helpers.each(dataset.points,function(point,index){
 					if (point.hasValue()){
-						point.transition(this.scale.getPointPosition(index, this.scale.calculateCenterOffset((point.value - 3)*1.6)), easeDecimal);
+						point.transition(this.scale.getPointPosition(index, this.scale.calculateCenterOffset(point.value)), easeDecimal);
 					}
 				},this);
 
