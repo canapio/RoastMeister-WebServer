@@ -217,7 +217,7 @@
 
         function downloadWithCSV() {
           var csvContent = "data:text/csv;charset=utf-8,";
-          csvContent += "<%= usertitle %>\n"
+          csvContent += "autocomplete,<%= usertitle %>\n"
           csvContent += "\n\n"
           csvContent += "Name,Count,Created_at,Updated_at\n"
           data.forEach(function(onedata, index){
