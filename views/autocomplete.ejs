@@ -107,6 +107,8 @@
   </div>
 
   <div class="table-responsive">
+
+    <h3>Enable</h3>
     <table class="table table-striped">
       <thead>
         <tr>
@@ -122,214 +124,245 @@
           <th><a onclick="reloadDataWithSortField('enable');">Enable <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
         </tr>
       </thead>
-      <tbody id="tablebody"></tbody>
-      <script type="text/javascript">
-        var data = <%-JSON.stringify(data)%>
+      <tbody id="enable_tablebody"></tbody>
+    </table>
 
-        var latestSort = {};
-
-
-        function reloadDataWithSortField(sortby) {
-          var order = 1
-          if (latestSort && latestSort[sortby] != null && latestSort[sortby]==1) {order = -1}
-          latestSort = {}
-          latestSort[sortby] = order
-
-          if (data[0] && data[0][sortby]) {
-            data.sort(function (a, b) {
-              if (a[sortby] > b[sortby]) {return (-1)*order;}
-              else if (a[sortby] < b[sortby]) {return (1)*order;}
-              else {return 0;}
-            })
-          }
-          reloadData()
-
-          $("#name_arrow").attr('class','fa fa-caret-down');
-          $("#count_arrow").attr('class','fa fa-caret-down');
-          $("#created_at_arrow").attr('class','fa fa-caret-down');
-          $("#updated_at_arrow").attr('class','fa fa-caret-down');
-          $("#enable_arrow").attr('class','fa fa-caret-down');
-          $("#name_arrow").css('opacity', '0.5');
-          $("#count_arrow").css('opacity', '0.5');
-          $("#created_at_arrow").css('opacity', '0.5');
-          $("#updated_at_arrow").css('opacity', '0.5');
-          $("#enable_arrow").css('opacity', '0.5');
-          if (order==1) {
-          } else {
-            $("#" + sortby + "_arrow").attr('class','fa fa-caret-up');
-          }
-          $("#" + sortby + "_arrow").css('opacity', '1');
-        }
-        function reloadData () {
-          var html = ""
-          for (var i=0; i<data.length; i++) {
-            html += '<tr>'
-            <% if (user.canGroup("Monitor")) { %>
-            html += '<td>' + '<input type="checkbox"/>'  + '</td>'
-            <% } else { %>
-            html += '<td>' + String(i+1)  + '</td>'
-            <% } %>
-            html += '<td>' + data[i]["name"] + '</td>'
-            html += '<td>' + data[i]["count"] + '</td>'
-            html += '<td>' + (new Date(data[i]["created_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
-            html += '<td>' + (new Date(data[i]["updated_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
-
-            <% if (user.canGroup("Monitor")) { %>
-            if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
-              html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
-            } else {
-              html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
-            }
-            <% } else { %>
-            if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
-              html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
-            } else {
-              html += '<td>' + '<input type="checkbox" disabled/>' + '</td>'
-            }
-            <% } %>
-            html += '</tr>'
-          }
-          $("#tablebody").html(html)
-        }
-
-        function reloadChartData(data) {
-          var dataPoints = []
-          var dataPointCount = 7
-          var othersCount = 0
-          for (var i=0; i<data.length; i++) {
-            if (data[i]["count"]) {
-              if (i < dataPointCount) {
-                dataPoints.push({
-                  y: data[i]["count"],
-                  indexLabel: data[i]["name"]
-                })
-              } else {
-                othersCount += data[i]["count"]
-              }
-            }
-          }
-          if (othersCount>0) {
-            dataPoints.push({
-              y: othersCount,
-              indexLabel: "others"
-            })
-          }
-         	var chart = new CanvasJS.Chart("chartContainer", {
-        		theme: "theme2",
-        		data: [{
-        			type: "pie",
-        			showInLegend: true,
-        			toolTipContent: "{y} - #percent %",
-        			legendText: "{indexLabel}",
-        			dataPoints: dataPoints
-        		}]
-        	});
-        	chart.render();
-        }
-
-        $( document ).ready(function() {
-
-          // 왼쪽 메뉴 활성
-          var title = "<%= title %>";
-          $("#" + title + "_li").attr("class", "active collapsed active")
-          $("#headtitle").text("자동완성 - " + $("#" + title + "_li").text())
-
-          // data를 정렬 및 화면에 뿌림
-          reloadDataWithSortField("count")
-
-          // data를 기반으로 상단의 차트 표시
-          reloadChartData(data)
-
-        });
-
-        function downloadWithCSV() {
-          var csvContent = "data:text/csv;charset=utf-8,";
-          csvContent += "autocomplete,<%= usertitle %>\n"
-          csvContent += "\n\n"
-          csvContent += "Name,Count,Created_at,Updated_at\n"
-          data.forEach(function(onedata, index){
-            var created_at = (new Date(onedata["created_at"])).format("yyyy-MM-dd HH:mm:ss")
-            var updated_at = (new Date(onedata["updated_at"])).format("yyyy-MM-dd HH:mm:ss")
-            dataString = onedata["name"] + "," + onedata["count"] + "," + created_at + "," + updated_at
-            csvContent += index < data.length ? dataString+ "\n" : dataString;
-          });
-
-          var nowdatestring = (new Date()).format("yyyyMMddHHmmss")
-
-          var encodedUri = encodeURI(csvContent);
-          var link = document.createElement("a");
-          link.setAttribute("href", encodedUri);
-          link.setAttribute("download", "autocomplete_<%= usertitle %>_"+nowdatestring+".csv");
-
-          link.click(); // This will download the data file named "my_data.csv".
-        }
-
-        <% if (user.canGroup("Monitor")) { %>
-        function clickEnableCheckbox(index, checked) {
-          var param = {
-            enable: checked
-          }
-          $.ajax({
-              url: '/autocomplete/<%=usertitle%>/'+data[index]["_id"],
-              type: 'PUT',
-              data: param,
-              success: function(result) {
-                  // Do something with the result
-                  var html = ""
-                  if (result.err) {
-                    html += '<div class="alert alert-danger alert-dismissible fade in" role="alert">'
-                    html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
-                    html += '<strong>Failed!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
-                    html += '</div>'
-
-                  } else {
-                    html += '<div class="alert alert-success alert-dismissible fade in" role="alert">'
-                    html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
-                    html += '<strong>Success!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
-                    html += '</div>'
-
-                  }
-                  $("#alertdiv").html(html)
-              },
-              error:function(request,status,error){
-                  console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
-              }
-          });
-        }
-        <% } %>
-
-
-        Date.prototype.format = function(f) {
-            if (!this.valueOf()) return " ";
-
-            var weekName = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
-            var d = this;
-
-            return f.replace(/(yyyy|yy|MM|dd|E|hh|mm|ss|a\/p)/gi, function($1) {
-                switch ($1) {
-                    case "yyyy": return d.getFullYear();
-                    case "yy": return (d.getFullYear() % 1000).zf(2);
-                    case "MM": return (d.getMonth() + 1).zf(2);
-                    case "dd": return d.getDate().zf(2);
-                    case "E": return weekName[d.getDay()];
-                    case "HH": return d.getHours().zf(2);
-                    case "hh": return ((h = d.getHours() % 12) ? h : 12).zf(2);
-                    case "mm": return d.getMinutes().zf(2);
-                    case "ss": return d.getSeconds().zf(2);
-                    case "a/p": return d.getHours() < 12 ? "오전" : "오후";
-                    default: return $1;
-                }
-            });
-        };
-
-        String.prototype.string = function(len){var s = '', i = 0; while (i++ < len) { s += this; } return s;};
-        String.prototype.zf = function(len){return "0".string(len - this.length) + this;};
-        Number.prototype.zf = function(len){return this.toString().zf(len);};
-
-        </script>
+    <h3>Disable</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <% if (user.canGroup("Monitor")) { %>
+          <th><input type="checkbox"></th>
+          <% } else { %>
+          <th>#</th>
+          <% } %>
+          <th><a onclick="reloadDataWithSortField('name');">Name <i id="name_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('count');">Count <i id="count_arrow" class="fa fa-caret-up"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('created_at');">Created Date <i id="created_at_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('updated_at');">Updated Date <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('enable');">Enable <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
+        </tr>
+      </thead>
+      <tbody id="disable_tablebody"></tbody>
     </table>
   </div>
 </div>
+
+<script type="text/javascript">
+  var data = <%-JSON.stringify(data)%>
+  var disabledata = []
+
+  for (var i=0; i<data.length; i++) {
+    if (data[i].enable === false) {
+      disabledata.push(data[i])
+      data.splice(i, 1);
+      i--;
+      continue;
+    }
+  }
+
+  var latestSort = {};
+
+
+  function reloadDataWithSortField(sortby) {
+    var order = 1
+    if (latestSort && latestSort[sortby] != null && latestSort[sortby]==1) {order = -1}
+    latestSort = {}
+    latestSort[sortby] = order
+
+    if (data[0] && data[0][sortby]) {
+      data.sort(function (a, b) {
+        if (a[sortby] > b[sortby]) {return (-1)*order;}
+        else if (a[sortby] < b[sortby]) {return (1)*order;}
+        else {return 0;}
+      })
+    }
+    reloadData(data, "#enable_tablebody")
+    reloadData(disabledata, "#disable_tablebody")
+
+    $("#name_arrow").attr('class','fa fa-caret-down');
+    $("#count_arrow").attr('class','fa fa-caret-down');
+    $("#created_at_arrow").attr('class','fa fa-caret-down');
+    $("#updated_at_arrow").attr('class','fa fa-caret-down');
+    $("#enable_arrow").attr('class','fa fa-caret-down');
+    $("#name_arrow").css('opacity', '0.5');
+    $("#count_arrow").css('opacity', '0.5');
+    $("#created_at_arrow").css('opacity', '0.5');
+    $("#updated_at_arrow").css('opacity', '0.5');
+    $("#enable_arrow").css('opacity', '0.5');
+    if (order==1) {
+    } else {
+      $("#" + sortby + "_arrow").attr('class','fa fa-caret-up');
+    }
+    $("#" + sortby + "_arrow").css('opacity', '1');
+  }
+  function reloadData (data, tablebody_id) {
+    var html = ""
+    for (var i=0; i<data.length; i++) {
+      html += '<tr>'
+      <% if (user.canGroup("Monitor")) { %>
+      html += '<td>' + '<input type="checkbox"/>'  + '</td>'
+      <% } else { %>
+      html += '<td>' + String(i+1)  + '</td>'
+      <% } %>
+      html += '<td>' + data[i]["name"] + '</td>'
+      html += '<td>' + data[i]["count"] + '</td>'
+      html += '<td>' + (new Date(data[i]["created_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
+      html += '<td>' + (new Date(data[i]["updated_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
+
+      <% if (user.canGroup("Monitor")) { %>
+      if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
+        html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+      } else {
+        html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+      }
+      <% } else { %>
+      if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
+        html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
+      } else {
+        html += '<td>' + '<input type="checkbox" disabled/>' + '</td>'
+      }
+      <% } %>
+      html += '</tr>'
+    }
+    $(tablebody_id).html(html)
+  }
+
+  function reloadChartData(data) {
+    var dataPoints = []
+    var dataPointCount = 7
+    var othersCount = 0
+    for (var i=0; i<data.length; i++) {
+      if (data[i]["count"]) {
+        if (i < dataPointCount) {
+          dataPoints.push({
+            y: data[i]["count"],
+            indexLabel: data[i]["name"]
+          })
+        } else {
+          othersCount += data[i]["count"]
+        }
+      }
+    }
+    if (othersCount>0) {
+      dataPoints.push({
+        y: othersCount,
+        indexLabel: "others"
+      })
+    }
+    var chart = new CanvasJS.Chart("chartContainer", {
+      theme: "theme2",
+      data: [{
+        type: "pie",
+        showInLegend: true,
+        toolTipContent: "{y} - #percent %",
+        legendText: "{indexLabel}",
+        dataPoints: dataPoints
+      }]
+    });
+    chart.render();
+  }
+
+  $( document ).ready(function() {
+
+    // 왼쪽 메뉴 활성
+    var title = "<%= title %>";
+    $("#" + title + "_li").attr("class", "active collapsed active")
+    $("#headtitle").text("자동완성 - " + $("#" + title + "_li").text())
+
+    // data를 정렬 및 화면에 뿌림
+    reloadDataWithSortField("count")
+
+    // data를 기반으로 상단의 차트 표시
+    reloadChartData(data)
+
+  });
+
+  function downloadWithCSV() {
+    var csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "autocomplete,<%= usertitle %>\n"
+    csvContent += "\n\n"
+    csvContent += "Name,Count,Created_at,Updated_at\n"
+    data.forEach(function(onedata, index){
+      var created_at = (new Date(onedata["created_at"])).format("yyyy-MM-dd HH:mm:ss")
+      var updated_at = (new Date(onedata["updated_at"])).format("yyyy-MM-dd HH:mm:ss")
+      dataString = onedata["name"] + "," + onedata["count"] + "," + created_at + "," + updated_at
+      csvContent += index < data.length ? dataString+ "\n" : dataString;
+    });
+
+    var nowdatestring = (new Date()).format("yyyyMMddHHmmss")
+
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "autocomplete_<%= usertitle %>_"+nowdatestring+".csv");
+
+    link.click(); // This will download the data file named "my_data.csv".
+  }
+
+  <% if (user.canGroup("Monitor")) { %>
+  function clickEnableCheckbox(index, checked) {
+    var param = {
+      enable: checked
+    }
+    $.ajax({
+        url: '/autocomplete/<%=usertitle%>/'+data[index]["_id"],
+        type: 'PUT',
+        data: param,
+        success: function(result) {
+            // Do something with the result
+            var html = ""
+            if (result.err) {
+              html += '<div class="alert alert-danger alert-dismissible fade in" role="alert">'
+              html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+              html += '<strong>Failed!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+              html += '</div>'
+
+            } else {
+              html += '<div class="alert alert-success alert-dismissible fade in" role="alert">'
+              html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+              html += '<strong>Success!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+              html += '</div>'
+
+            }
+            $("#alertdiv").html(html)
+        },
+        error:function(request,status,error){
+            console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+        }
+    });
+  }
+  <% } %>
+
+
+  Date.prototype.format = function(f) {
+      if (!this.valueOf()) return " ";
+
+      var weekName = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+      var d = this;
+
+      return f.replace(/(yyyy|yy|MM|dd|E|hh|mm|ss|a\/p)/gi, function($1) {
+          switch ($1) {
+              case "yyyy": return d.getFullYear();
+              case "yy": return (d.getFullYear() % 1000).zf(2);
+              case "MM": return (d.getMonth() + 1).zf(2);
+              case "dd": return d.getDate().zf(2);
+              case "E": return weekName[d.getDay()];
+              case "HH": return d.getHours().zf(2);
+              case "hh": return ((h = d.getHours() % 12) ? h : 12).zf(2);
+              case "mm": return d.getMinutes().zf(2);
+              case "ss": return d.getSeconds().zf(2);
+              case "a/p": return d.getHours() < 12 ? "오전" : "오후";
+              default: return $1;
+          }
+      });
+  };
+
+  String.prototype.string = function(len){var s = '', i = 0; while (i++ < len) { s += this; } return s;};
+  String.prototype.zf = function(len){return "0".string(len - this.length) + this;};
+  Number.prototype.zf = function(len){return this.toString().zf(len);};
+
+  </script>
 </body>
 <script src="../dist/js/bootstrap.min.js"></script>
 <script src="../dist/js/vendor/holder.min.js"></script>
