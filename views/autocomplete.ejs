@@ -176,6 +176,11 @@
         else if (a[sortby] < b[sortby]) {return (1)*order;}
         else {return 0;}
       })
+      disabledata.sort(function (a, b) {
+        if (a[sortby] > b[sortby]) {return (-1)*order;}
+        else if (a[sortby] < b[sortby]) {return (1)*order;}
+        else {return 0;}
+      })
     }
     reloadData(data, "#enable_tablebody")
     reloadData(disabledata, "#disable_tablebody")
