@@ -95,7 +95,7 @@
 
 <div class="main-body main">
 
-  <div id="alertdiv"></div>
+
 
   <span><h1 id="headtitle" class="page-header">자동완성</h1><span style="float: right;"><button type="button" class="btn btn-default btn-sm" style="font-size: 14px;" onclick="downloadWithCSV();">csv 파일 다운로드</button></span></span>
 
@@ -106,9 +106,10 @@
     </div>
   </div>
 
-  <div class="table-responsive">
+  <div id="alertdiv"></div>
 
-    <h3>Enable</h3>
+  <h3>Enable</h3>
+  <div class="table-responsive">
     <table class="table table-striped">
       <thead>
         <tr>
@@ -126,7 +127,8 @@
       </thead>
       <tbody id="enable_tablebody"></tbody>
     </table>
-
+  </div>
+  <div class="table-responsive">
     <h3>Disable</h3>
     <table class="table table-striped">
       <thead>
