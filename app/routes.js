@@ -82,7 +82,7 @@ module.exports = function(passport, connect) {
         res.render('page404.ejs')
       }
   });
-  router.route('/autocomplete/:title/:id').put(isLoggedIn, checkGroup("Admin"), function(req, res) {
+  router.route('/autocomplete/:title/:id').put(isLoggedIn, checkGroup("Monitor"), function(req, res) {
     if (apiTitles.indexOf(req.params.title) >= 0 && autocompleteModels[autocompleteTitles[apiTitles.indexOf(req.params.title)]]) {
       var dbtitle = autocompleteTitles[apiTitles.indexOf(req.params.title)]
       autocompleteModels[dbtitle].update({_id: req.params.id}, req.body, function(err, numAffected) {
