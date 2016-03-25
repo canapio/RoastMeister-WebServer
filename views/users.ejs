@@ -94,9 +94,7 @@
 
 
 <div class="main-body main">
-  <div id="alertdiv">
-
-  </div>
+  <div id="alertdiv"></div>
 
   <% if (user.group == "Admin") { %>
   <div class="" style="float: right; margin-top: 15px;">
@@ -258,14 +256,19 @@
 
   <% if (user.group == "Admin") { %>
   function deleteUsers() {
-    $.ajax({
-        url: '/users',
-        type: 'DELETE',
-        success: function(result) {
-            // Do something with the result
-            location.reload();
-        }
-    });
+    if (confirm('Admin계정을 제외한 모든 유저를 삭제합니다.\n정말 모든 유저를 삭제하시겠습니까?')) {
+        // Do it!
+        $.ajax({
+            url: '/users',
+            type: 'DELETE',
+            success: function(result) {
+                // Do something with the result
+                location.reload();
+            }
+        });
+    } else {
+        // Do nothing!
+    }
   }
   function changeGroupValue(value, index) {
     var param = {

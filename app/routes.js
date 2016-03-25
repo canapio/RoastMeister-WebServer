@@ -21,6 +21,13 @@ module.exports = function(passport, connect) {
 
   var userModel = require("../app/models/user.js")
 
+
+
+
+
+
+
+
   // LOGIN ==============================
   // router.get('/login', isLoggedIn, function(req, res) {
   //   res.render('login.ejs');
@@ -43,7 +50,6 @@ module.exports = function(passport, connect) {
       user : req.user,
     });
   });
-
   router.get('/graphtest', function(req, res) {
     res.render('graphtest.ejs', {
       sampledata : sampledataobject
@@ -76,6 +82,17 @@ module.exports = function(passport, connect) {
         res.render('page404.ejs')
       }
   });
+  router.route('/autocomplete/:title/:id').put(isLoggedIn, checkGroup("Admin"), function(req, res) {
+    if (apiTitles.indexOf(req.params.title) >= 0 && autocompleteModels[autocompleteTitles[apiTitles.indexOf(req.params.title)]]) {
+      var dbtitle = autocompleteTitles[apiTitles.indexOf(req.params.title)]
+      autocompleteModels[dbtitle].update({_id: req.params.id}, req.body, function(err, numAffected) {
+        res.json({"err": err, "data": numAffected})
+      })
+    } else {
+      res.json({"err": "There is no db"})
+    }
+  })
+
 
   router.route('/users')
   .get(isLoggedIn, checkGroup("Monitor"), function(req, res) {
@@ -96,11 +113,17 @@ module.exports = function(passport, connect) {
     })
   })
   .delete(function(req, res) {
-    userModel.remove({}, function(err) {
-      if (err) {
+    userModel.find({group: "Admin"}, function(err, data) {
+      if (err || data.length==0) {
         res.json({})
       } else {
-        res.json({})
+        userModel.remove({group: {$ne: "Admin"}}, function(err) {
+          if (err) {
+            res.json({})
+          } else {
+            res.json({})
+          }
+        })
       }
     })
   })
@@ -286,8 +309,24 @@ module.exports = function(passport, connect) {
 
   app.use('/',router);
 
+
+  app.createAdmin = function (password, callback) {
+    var userid = "admin"
+    var userpass = password
+    var adminuser = new userModel()
+    adminuser.local.email     = userid,
+    adminuser.local.password  = adminuser.generateHash(userpass)
+    adminuser.group           = "Admin"
+
+    adminuser.save(callback)
+  }
+
   return app;
 }
+
+
+// create admin
+
 
 
 // route middleware to ensure user is logged in

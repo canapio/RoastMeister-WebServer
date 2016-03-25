@@ -95,6 +95,8 @@
 
 <div class="main-body main">
 
+  <div id="alertdiv"></div>
+
   <span><h1 id="headtitle" class="page-header">자동완성</h1><span style="float: right;"><button type="button" class="btn btn-default btn-sm" style="font-size: 14px;" onclick="downloadWithCSV();">csv 파일 다운로드</button></span></span>
 
   <div class="row placeholders">
@@ -108,11 +110,16 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <% if (user.canGroup("Monitor")) { %>
+          <th><input type="checkbox"></th>
+          <% } else { %>
           <th>#</th>
+          <% } %>
           <th><a onclick="reloadDataWithSortField('name');">Name <i id="name_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('count');">Count <i id="count_arrow" class="fa fa-caret-up"></i></a></th>
           <th><a onclick="reloadDataWithSortField('created_at');">Created Date <i id="created_at_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('updated_at');">Updated Date <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('enable');">Enable <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
         </tr>
       </thead>
       <tbody id="tablebody"></tbody>
@@ -141,10 +148,12 @@
           $("#count_arrow").attr('class','fa fa-caret-down');
           $("#created_at_arrow").attr('class','fa fa-caret-down');
           $("#updated_at_arrow").attr('class','fa fa-caret-down');
+          $("#enable_arrow").attr('class','fa fa-caret-down');
           $("#name_arrow").css('opacity', '0.5');
           $("#count_arrow").css('opacity', '0.5');
           $("#created_at_arrow").css('opacity', '0.5');
           $("#updated_at_arrow").css('opacity', '0.5');
+          $("#enable_arrow").css('opacity', '0.5');
           if (order==1) {
           } else {
             $("#" + sortby + "_arrow").attr('class','fa fa-caret-up');
@@ -155,11 +164,29 @@
           var html = ""
           for (var i=0; i<data.length; i++) {
             html += '<tr>'
+            <% if (user.canGroup("Monitor")) { %>
+            html += '<td>' + '<input type="checkbox"/>'  + '</td>'
+            <% } else { %>
             html += '<td>' + String(i+1)  + '</td>'
+            <% } %>
             html += '<td>' + data[i]["name"] + '</td>'
             html += '<td>' + data[i]["count"] + '</td>'
             html += '<td>' + (new Date(data[i]["created_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
             html += '<td>' + (new Date(data[i]["updated_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
+
+            <% if (user.canGroup("Monitor")) { %>
+            if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
+              html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+            } else {
+              html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+            }
+            <% } else { %>
+            if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
+              html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
+            } else {
+              html += '<td>' + '<input type="checkbox" disabled/>' + '</td>'
+            }
+            <% } %>
             html += '</tr>'
           }
           $("#tablebody").html(html)
@@ -237,8 +264,39 @@
           link.click(); // This will download the data file named "my_data.csv".
         }
 
+        <% if (user.canGroup("Monitor")) { %>
+        function clickEnableCheckbox(index, checked) {
+          var param = {
+            enable: checked
+          }
+          $.ajax({
+              url: '/autocomplete/<%=usertitle%>/'+data[index]["_id"],
+              type: 'PUT',
+              data: param,
+              success: function(result) {
+                  // Do something with the result
+                  var html = ""
+                  if (result.err) {
+                    html += '<div class="alert alert-danger alert-dismissible fade in" role="alert">'
+                    html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+                    html += '<strong>Failed!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+                    html += '</div>'
 
+                  } else {
+                    html += '<div class="alert alert-success alert-dismissible fade in" role="alert">'
+                    html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+                    html += '<strong>Success!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+                    html += '</div>'
 
+                  }
+                  $("#alertdiv").html(html)
+              },
+              error:function(request,status,error){
+                  console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+              }
+          });
+        }
+        <% } %>
 
 
         Date.prototype.format = function(f) {
