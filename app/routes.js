@@ -82,6 +82,21 @@ module.exports = function(passport, connect) {
         res.render('page404.ejs')
       }
   });
+  router.route('/autocomplete/:title').delete(isLoggedIn, checkGroup("Monitor"), function(req, res) {
+      if (apiTitles.indexOf(req.params.title) >= 0 && autocompleteModels[autocompleteTitles[apiTitles.indexOf(req.params.title)]]) {
+        var dbtitle = autocompleteTitles[apiTitles.indexOf(req.params.title)]
+        console.log(req.body._ids)
+        autocompleteModels[dbtitle].remove({ _id: { $in: req.body._ids } }, function (err) {
+          if (err) {
+            res.json({error: err.message})
+          } else {
+            res.json({err_code: 200})
+          }
+        });
+      } else {
+        res.json({error: "There is no db"})
+      }
+  });
   router.route('/autocomplete/:title/:id').put(isLoggedIn, checkGroup("Monitor"), function(req, res) {
     if (apiTitles.indexOf(req.params.title) >= 0 && autocompleteModels[autocompleteTitles[apiTitles.indexOf(req.params.title)]]) {
       var dbtitle = autocompleteTitles[apiTitles.indexOf(req.params.title)]

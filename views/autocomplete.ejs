@@ -108,14 +108,13 @@
   </div>
 
   <div id="alertdiv"></div>
-
   <h3>Enable</h3>
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
         <tr>
           <% if (user.canGroup("Monitor")) { %>
-          <th><input type="checkbox"></th>
+          <th><input type="checkbox" onchange="clickAllCheckbox(true, this.checked);"></th>
           <% } else { %>
           <th>#</th>
           <% } %>
@@ -136,7 +135,7 @@
       <thead>
         <tr>
           <% if (user.canGroup("Monitor")) { %>
-          <th><input type="checkbox"></th>
+          <th><input type="checkbox" onchange="clickAllCheckbox(false, this.checked);"></th>
           <% } else { %>
           <th>#</th>
           <% } %>
@@ -151,9 +150,9 @@
       <tbody id="disable_tablebody"></tbody>
     </table>
   </div>
-
-
   <% if (user.canGroup("Monitor")) { %>
+  <button type="button" class="btn btn-danger" data-loading-text="삭제중..." id="btn_removedata" onclick="clickRemove();">선택된 0개의 데이터 삭제</button>
+
     <div class="row" style="margin-top: 34px;">
       <div class="col-md-offset-2 col-md-8 col-sm-offset-0 col-sm-12">
          <div class="panel panel-default">
@@ -262,7 +261,7 @@
     for (var i=0; i<data.length; i++) {
       html += '<tr>'
       <% if (user.canGroup("Monitor")) { %>
-      html += '<td>' + '<input type="checkbox"/>'  + '</td>'
+      html += '<td>' + '<input type="checkbox" class="removecheckbox" id="'+data[i]["_id"]+'" onchange="reloadChecked();"/>'  + '</td>'
       <% } else { %>
       html += '<td>' + String(i+1)  + '</td>'
       <% } %>
@@ -354,6 +353,9 @@
     // data를 기반으로 상단의 차트 표시
     reloadChartData(data)
 
+    // 초기에는 삭제 버튼 비활성화
+    reloadChecked()
+
   });
 
   function sortAndReloadDataWithSortField(sortby) {
@@ -388,6 +390,84 @@
   }
 
   <% if (user.canGroup("Monitor")) { %>
+  function clickAllCheckbox(enable, checked) {
+    if (enable) {
+      $('#enable_tablebody input:checkbox.removecheckbox').each(function () {
+        this.checked = checked
+      });
+    } else {
+      $('#disable_tablebody input:checkbox.removecheckbox').each(function () {
+        this.checked = checked
+      });
+    }
+    reloadChecked()
+  }
+  function reloadChecked() {
+    var checkedcount = 0
+    $('input:checkbox.removecheckbox').each(function () {
+      if (this.checked) checkedcount++;
+    });
+    if (checkedcount==0) {
+      $("#btn_removedata").attr("disabled",true);
+    } else {
+      $("#btn_removedata").removeAttr("disabled");
+    }
+    $("#btn_removedata").html("선택된 "+checkedcount+"개의 데이터 삭제")
+  }
+  function clickRemove() {
+    var _ids = []
+    $('input:checkbox.removecheckbox').each(function () {
+      if (this.checked) _ids.push($(this).attr('id'));
+    });
+    if (confirm('선택된 데이터를 삭제합니다.\n정말 '+_ids.length+'개의 데이터를 삭제하시겠습니까?')) {
+        // Do it!
+        $("#btn_removedata").button('loading')
+        var param = {
+          _ids: _ids
+        }
+        $.ajax({
+            url: '/autocomplete/<%=usertitle%>/',
+            type: 'DELETE',
+            data: param,
+            success: function(result) {
+                $("#btn_removedata").button('reset')
+                // Do something with the result
+                console.log(JSON.stringify(result))
+                if (result.err_code && result.err_code==200) {
+
+                  for (var i=0; i<data.length; i++) {
+                    for (var j=0; j<_ids.length; j++) {
+                      if (data[i]["_id"] == _ids[j]) {
+                        data.splice(i, 1);
+                        i--;
+                      }
+                    }
+                  }
+                  for (var i=0; i<disabledata.length; i++) {
+                    for (var j=0; j<_ids.length; j++) {
+                      if (disabledata[i]["_id"] == _ids[j]) {
+                        disabledata.splice(i, 1);
+                        i--;
+                      }
+                    }
+                  }
+
+                  reloadDataWithSortField("highlight")
+                  // data를 기반으로 상단의 차트 표시
+                  reloadChartData(data)
+                  // 초기에는 삭제 버튼 비활성화
+                  reloadChecked()
+                } else {
+
+                }
+                // location.reload();
+            }
+        });
+    } else {
+        // Do nothing!
+    }
+  }
+
   function clickEnableCheckbox(_id, checked) {
     var param = {
       enable: checked
