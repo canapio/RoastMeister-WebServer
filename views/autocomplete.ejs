@@ -214,6 +214,11 @@
 
     if (data[0]) {
       var sortfunc = function (a, b) {
+        if ((a[sortby] === null || a[sortby] === undefined) && (b[sortby] === null || b[sortby] === undefined)) {
+          if (a["count"] > b["count"]) {return (-1)*order;}
+          else if (a["count"] < b["count"]) {return (1)*order;}
+          else {return 0;}
+        }
         if (a[sortby] === null || a[sortby] === undefined) {return (1)*order;}
         if (b[sortby] === null || b[sortby] === undefined) {return (-1)*order;}
 
