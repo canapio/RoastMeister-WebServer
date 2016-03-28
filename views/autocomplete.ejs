@@ -422,7 +422,7 @@
     });
     if (confirm('선택된 데이터를 삭제합니다.\n정말 '+_ids.length+'개의 데이터를 삭제하시겠습니까?')) {
         // Do it!
-        reloadChecked()
+        $("#btn_removedata").html("선택된 "+0+"개의 데이터 삭제")
         $("#btn_removedata").button('loading')
         var param = {
           _ids: _ids
