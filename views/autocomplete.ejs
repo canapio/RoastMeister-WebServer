@@ -263,7 +263,7 @@
       html += '<td>' + (new Date(data[i]["updated_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
 
       <% if (user.canGroup("Monitor")) { %>
-      if (data[i]["highlight"] === true || data[i]["highlight"] === undefined || data[i]["highlight"] === null) {
+      if (data[i]["highlight"] == true) {
         html += '<td>' + '<input type="checkbox" checked onchange="clickHighlightCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       } else {
         html += '<td>' + '<input type="checkbox" onchange="clickHighlightCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
@@ -274,7 +274,7 @@
         html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       }
       <% } else { %>
-      if (data[i]["highlight"] === true || data[i]["highlight"] === undefined || data[i]["highlight"] === null) {
+      if (data[i]["highlight"] == true) {
         html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
       } else {
         html += '<td>' + '<input type="checkbox" disabled/>' + '</td>'
