@@ -108,7 +108,9 @@
   </div>
 
   <div id="alertdiv"></div>
+  <% if (user.canGroup("Monitor")) { %>
   <h3>Enable</h3>
+  <% } %>
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -368,8 +370,10 @@
     // data를 기반으로 상단의 차트 표시
     reloadChartData(data)
 
+    <% if (user.canGroup("Monitor")) { %>
     // 초기에는 삭제 버튼 비활성화
     reloadChecked()
+    <% } %>
 
   });
 
