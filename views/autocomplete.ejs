@@ -129,6 +129,7 @@
       <tbody id="enable_tablebody"></tbody>
     </table>
   </div>
+  <% if (user.canGroup("Monitor")) { %>
   <h3>Disable</h3>
   <div class="table-responsive">
     <table class="table table-striped">
@@ -150,7 +151,6 @@
       <tbody id="disable_tablebody"></tbody>
     </table>
   </div>
-  <% if (user.canGroup("Monitor")) { %>
   <button type="button" class="btn btn-danger" data-loading-text="삭제중..." id="btn_removedata" onclick="clickRemove();">선택된 0개의 데이터 삭제</button>
 
     <div class="row" style="margin-top: 34px;">
@@ -191,17 +191,23 @@
 
 
 <script type="text/javascript">
-  var data = <%-JSON.stringify(data)%>
+<%
+  var enabledata = data
   var disabledata = []
-
-  for (var i=0; i<data.length; i++) {
+  for (var i=0; i<enabledata.length; i++) {
     if (data[i].enable === false) {
-      disabledata.push(data[i])
-      data.splice(i, 1);
+      disabledata.push(enabledata[i])
+      enabledata.splice(i, 1);
       i--;
       continue;
     }
   }
+%>
+  var data = <%-JSON.stringify(enabledata)%>
+  <% if (user.canGroup("Monitor")) { %>
+  var disabledata = <%-JSON.stringify(disabledata)%>
+  <% } %>
+
 
   var latestSort = {};
 
@@ -233,7 +239,9 @@
 
 
       data.sort(sortfunc)
+      <% if (user.canGroup("Monitor")) { %>
       disabledata.sort(sortfunc)
+      <% } %>
 
     }
   }
@@ -241,7 +249,9 @@
   function reloadDataWithSortField(sortby) {
 
     reloadData(data, "#enable_tablebody")
+    <% if (user.canGroup("Monitor")) { %>
     reloadData(disabledata, "#disable_tablebody")
+    <% } %>
 
     $("#name_arrow").attr('class','fa fa-caret-down');
     $("#count_arrow").attr('class','fa fa-caret-down');
@@ -448,6 +458,7 @@
                       }
                     }
                   }
+                  <% if (user.canGroup("Monitor")) { %>
                   for (var i=0; i<disabledata.length; i++) {
                     for (var j=0; j<_ids.length; j++) {
                       if (disabledata[i]["_id"] == _ids[j]) {
@@ -456,6 +467,7 @@
                       }
                     }
                   }
+                  <% } %>
 
                   $("#btn_removedata").button('reset')
 
@@ -504,9 +516,11 @@
             for (var i=0; i<data.length; i++) {
               if (data[i]["_id"] == _id) {data[i]["enable"] = checked}
             }
+            <% if (user.canGroup("Monitor")) { %>
             for (var i=0; i<disabledata.length; i++) {
               if (disabledata[i]["_id"] == _id) {disabledata[i]["enable"] = checked}
             }
+            <% } %>
         },
         error:function(request,status,error){
             console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
@@ -542,9 +556,11 @@
             for (var i=0; i<data.length; i++) {
               if (data[i]["_id"] == _id) {data[i]["highlight"] = checked}
             }
+            <% if (user.canGroup("Monitor")) { %>
             for (var i=0; i<disabledata.length; i++) {
               if (disabledata[i]["_id"] == _id) {disabledata[i]["highlight"] = checked}
             }
+            <% } %>
         },
         error:function(request,status,error){
             console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
