@@ -459,8 +459,7 @@
                   // data를 기반으로 상단의 차트 표시
                   reloadChartData(data)
                   // 초기에는 삭제 버튼 비활성화
-                  reloadChecked()
-
+                  setInterval(reloadChecked, 100)
                 } else {
 
                 }
