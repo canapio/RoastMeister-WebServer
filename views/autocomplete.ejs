@@ -400,6 +400,11 @@
 
 
   function clickAdd() {
+    if (parseInt($("#inputcount").val()) > 1000) {
+      alert("1000개 이상의 값은 입력할 수 없습니다...")
+      $("#inputcount").val("1000")
+      return;
+    }
     var param = {
       name: $("#inputname").val(),
       count: $("#inputcount").val(),

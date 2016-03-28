@@ -6,6 +6,7 @@ module.exports = function(connect, title) {
       count : Number,
       deviceids : [String],
       enable: Boolean,
+      highlight: Boolean,
       created_at : Date,
       updated_at : Date
   })
