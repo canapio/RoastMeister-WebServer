@@ -92,6 +92,45 @@ module.exports = function(passport, connect) {
       res.json({"err": "There is no db"})
     }
   })
+  router.route('/autocomplete/:title').post(isLoggedIn, checkGroup("Monitor"), function(req, res) {
+    if (apiTitles.indexOf(req.params.title) >= 0 && autocompleteModels[autocompleteTitles[apiTitles.indexOf(req.params.title)]]) {
+      if (!req.body.name || req.body.name.length==0) {res.json({error: "Error :: There is no 'name' field.", err_code: 500}); return}
+      var dbtitle = autocompleteTitles[apiTitles.indexOf(req.params.title)]
+      var param = {
+        name: req.body.name
+      }
+      autocompleteModels[dbtitle].find(param, function(err, data) {
+        if (err) {
+          res.json({error: err, err_code: 500})
+        } else {
+          if (data.length != 0) {
+            res.json({error: "Error :: Already data is saved.", data: data[0], err_code: 500})
+          } else {
+            // 저장
+            var count = req.body.count
+            var deviceids = []
+            if (!count) count = 0
+            for (var i=0; i<count; i++) {
+              deviceids.push("admin_deviceid_" + i)
+            }
+            var autocompletedata = new autocompleteModels[dbtitle]({
+              name: req.body.name,
+              count: count,
+              deviceids: deviceids,
+              enable: true
+            })
+            autocompletedata.save(function(err) {
+              if (err) {
+                res.json({error: err, err_code: 500})
+              } else {
+                res.json({error: null, data: autocompletedata, err_code: 200})
+              }
+            })
+          }
+        }
+      })
+    }
+  })
 
 
   router.route('/users')

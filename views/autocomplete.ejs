@@ -128,8 +128,8 @@
       <tbody id="enable_tablebody"></tbody>
     </table>
   </div>
+  <h3>Disable</h3>
   <div class="table-responsive">
-    <h3>Disable</h3>
     <table class="table table-striped">
       <thead>
         <tr>
@@ -148,7 +148,45 @@
       <tbody id="disable_tablebody"></tbody>
     </table>
   </div>
+
+
+  <% if (user.canGroup("Monitor")) { %>
+    <div class="row" style="margin-top: 34px;">
+      <div class="col-md-offset-2 col-md-8 col-sm-offset-0 col-sm-12">
+         <div class="panel panel-default">
+            <div class="panel-heading">
+               <h4 class="panel-title" id="header_adddata">데이터 추가</h4><small>(모니터급 이상의 사용자만 추가가 가능합니다.)</small>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="form-group">
+                    <label for="inputlastname" class="col-md-4 control-label">
+                     Name</label>
+                    <div class="col-md-8">
+                       <input type="text" class="form-control" id="inputname" placeholder="Name을 입력해주세요..." />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputscreenname" class="col-md-4 control-label">
+                      Count</label>
+                    <div class="col-md-8">
+                         <input type="number" class="form-control" id="inputcount" placeholder="Count 숫자를 입력해주세요..." />
+                    </div>
+                </div>
+              </div>
+              <div class="row" id="add_result_div">
+              </div>
+            </div>
+            <div class="panel-footer" style="text-align: right;">
+              <button type="button" class="btn btn-primary" onclick="clickAdd();">Add</button>
+            </div>
+         </div>
+      </div>
+    </div>
+  <% } %>
 </div>
+
+
 
 <script type="text/javascript">
   var data = <%-JSON.stringify(data)%>
@@ -165,9 +203,9 @@
 
   var latestSort = {};
 
-
-  function reloadDataWithSortField(sortby) {
-    var order = 1
+  var order = 1
+  function sortDataWtihField(sortby) {
+    order = 1
     if (latestSort && latestSort[sortby] != null && latestSort[sortby]==1) {order = -1}
     latestSort = {}
     latestSort[sortby] = order
@@ -184,6 +222,10 @@
         else {return 0;}
       })
     }
+  }
+
+  function reloadDataWithSortField(sortby) {
+
     reloadData(data, "#enable_tablebody")
     reloadData(disabledata, "#disable_tablebody")
 
@@ -219,9 +261,9 @@
 
       <% if (user.canGroup("Monitor")) { %>
       if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
-        html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+        html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       } else {
-        html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox('+i+', this.checked)"/>' + '</td>'
+        html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       }
       <% } else { %>
       if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
@@ -270,14 +312,27 @@
     chart.render();
   }
 
+  var kotitle = ""
   $( document ).ready(function() {
 
     // 왼쪽 메뉴 활성
     var title = "<%= title %>";
     $("#" + title + "_li").attr("class", "active collapsed active")
-    $("#headtitle").text("자동완성 - " + $("#" + title + "_li").text())
 
-    // data를 정렬 및 화면에 뿌림
+    // 헤더 타이틀
+    kotitle = $("#" + title + "_li").text()
+    $("#headtitle").text("자동완성 - " + kotitle)
+
+    <% if (user.canGroup("Monitor")) { %>
+      $("#header_adddata").html(kotitle + " - 수동으로 추가")
+    <% } %>
+
+
+
+    // data를 정렬
+    sortDataWtihField("count")
+
+    // 화면에 뿌림
     reloadDataWithSortField("count")
 
     // data를 기반으로 상단의 차트 표시
@@ -308,12 +363,12 @@
   }
 
   <% if (user.canGroup("Monitor")) { %>
-  function clickEnableCheckbox(index, checked) {
+  function clickEnableCheckbox(_id, checked) {
     var param = {
       enable: checked
     }
     $.ajax({
-        url: '/autocomplete/<%=usertitle%>/'+data[index]["_id"],
+        url: '/autocomplete/<%=usertitle%>/'+_id,
         type: 'PUT',
         data: param,
         success: function(result) {
@@ -322,24 +377,94 @@
             if (result.err) {
               html += '<div class="alert alert-danger alert-dismissible fade in" role="alert">'
               html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
-              html += '<strong>Failed!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+              html += '<strong>Failed!</strong> UPDATE :: id:' + _id + ', enable:' + checked
               html += '</div>'
 
             } else {
               html += '<div class="alert alert-success alert-dismissible fade in" role="alert">'
               html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
-              html += '<strong>Success!</strong> UPDATE :: id:' + data[index]["_id"] + ', enable:' + checked
+              html += '<strong>Success!</strong> UPDATE :: id:' + _id + ', enable:' + checked
               html += '</div>'
 
             }
             $("#alertdiv").html(html)
+
+        },
+        error:function(request,status,error){
+            console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+        }
+    });
+
+  }
+
+
+  function clickAdd() {
+    var param = {
+      name: $("#inputname").val(),
+      count: $("#inputcount").val(),
+    }
+    $.ajax({
+        url: '/autocomplete/<%=usertitle%>',
+        type: 'POST',
+        data: param,
+        success: function(result) {
+            // Do something with the result
+            console.log(JSON.stringify(result))
+            var err_msg = result.err
+            if (result.err_code != 200) err_msg = result.error
+
+            var alert_type = "alert-success"
+            var alert_title = "Success!"
+            if (err_msg) {
+              alert_type = "alert-danger"
+              alert_title = "Failed!"
+            } else {
+              alert_type = "alert-success"
+            }
+
+            var html = ""
+            html += '<div class="alert '+ alert_type +' alert-dismissible" role="alert" style="margin: 15px; margin-top: 15px; margin-bottom: 0px;">'
+            html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'
+            html += '<span aria-hidden="true">&times;</span>'
+            html += '</button>'
+            html += '<strong>'+alert_title+'</strong> '
+            if (err_msg) html += err_msg
+
+            if (result.data) {
+              html += '<pre style="margin-top: 10px; margin-bottom: 0px; background-color: rgba(230, 230, 230, 0.2);">'
+              html += JSON.stringify(result.data, undefined, 2);
+              html += '</pre>'
+            }
+            html += '</div>'
+            $("#add_result_div").html(html)
+
+            if (!err_msg && result.err_code==200 && result.data) {
+              $("#inputname").val("");
+              $("#inputcount").val("");
+
+              data.push(result.data)
+
+
+              // data를 정렬
+              latestSort = {};
+              sortDataWtihField("count")
+
+              // data를 정렬 및 화면에 뿌림
+              reloadDataWithSortField("count")
+
+              // data를 기반으로 상단의 차트 표시
+              reloadChartData(data)
+            }
         },
         error:function(request,status,error){
             console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
         }
     });
   }
+
   <% } %>
+
+
 
 
   Date.prototype.format = function(f) {
