@@ -430,7 +430,6 @@
             type: 'DELETE',
             data: param,
             success: function(result) {
-                $("#btn_removedata").button('reset')
                 // Do something with the result
                 console.log(JSON.stringify(result))
                 if (result.err_code && result.err_code==200) {
@@ -457,6 +456,8 @@
                   reloadChartData(data)
                   // 초기에는 삭제 버튼 비활성화
                   reloadChecked()
+
+                  $("#btn_removedata").button('reset')
                 } else {
 
                 }
