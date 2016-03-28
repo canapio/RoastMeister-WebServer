@@ -418,6 +418,7 @@
     var _ids = []
     $('input:checkbox.removecheckbox').each(function () {
       if (this.checked) _ids.push($(this).attr('id'));
+      this.checked = false
     });
     if (confirm('선택된 데이터를 삭제합니다.\n정말 '+_ids.length+'개의 데이터를 삭제하시겠습니까?')) {
         // Do it!
