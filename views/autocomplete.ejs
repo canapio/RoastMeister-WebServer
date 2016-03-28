@@ -421,6 +421,7 @@
     });
     if (confirm('선택된 데이터를 삭제합니다.\n정말 '+_ids.length+'개의 데이터를 삭제하시겠습니까?')) {
         // Do it!
+        reloadChecked()
         $("#btn_removedata").button('loading')
         var param = {
           _ids: _ids
@@ -452,7 +453,7 @@
                   }
 
                   $("#btn_removedata").button('reset')
-                  
+
                   reloadDataWithSortField("highlight")
                   // data를 기반으로 상단의 차트 표시
                   reloadChartData(data)
