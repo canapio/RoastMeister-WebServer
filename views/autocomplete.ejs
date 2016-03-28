@@ -123,6 +123,7 @@
           <th><a onclick="reloadDataWithSortField('count');">Count <i id="count_arrow" class="fa fa-caret-up"></i></a></th>
           <th><a onclick="reloadDataWithSortField('created_at');">Created Date <i id="created_at_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('updated_at');">Updated Date <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('highlight');">Highlight <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('enable');">Enable <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
         </tr>
       </thead>
@@ -143,6 +144,7 @@
           <th><a onclick="reloadDataWithSortField('count');">Count <i id="count_arrow" class="fa fa-caret-up"></i></a></th>
           <th><a onclick="reloadDataWithSortField('created_at');">Created Date <i id="created_at_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('updated_at');">Updated Date <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
+          <th><a onclick="reloadDataWithSortField('highlight');">Highlight <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
           <th><a onclick="reloadDataWithSortField('enable');">Enable <i id="updated_at_arrow" class="fa fa-caret-down"></i></a></th>
         </tr>
       </thead>
@@ -261,12 +263,22 @@
       html += '<td>' + (new Date(data[i]["updated_at"]).format("yyyy-MM-dd HH:mm:ss")) + '</td>'
 
       <% if (user.canGroup("Monitor")) { %>
+      if (data[i]["highlight"] === true || data[i]["highlight"] === undefined || data[i]["highlight"] === null) {
+        html += '<td>' + '<input type="checkbox" checked onchange="clickHighlightCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
+      } else {
+        html += '<td>' + '<input type="checkbox" onchange="clickHighlightCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
+      }
       if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
         html += '<td>' + '<input type="checkbox" checked onchange="clickEnableCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       } else {
         html += '<td>' + '<input type="checkbox" onchange="clickEnableCheckbox(\''+data[i]["_id"]+'\', this.checked)"/>' + '</td>'
       }
       <% } else { %>
+      if (data[i]["highlight"] === true || data[i]["highlight"] === undefined || data[i]["highlight"] === null) {
+        html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
+      } else {
+        html += '<td>' + '<input type="checkbox" disabled/>' + '</td>'
+      }
       if (data[i]["enable"] === true || data[i]["enable"] === undefined || data[i]["enable"] === null) {
         html += '<td>' + '<input type="checkbox" checked disabled/>' + '</td>'
       } else {
@@ -395,14 +407,45 @@
             console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
         }
     });
+  }
+  function clickHighlightCheckbox(_id, checked) {
+    var param = {
+      highlight: checked
+    }
+    $.ajax({
+        url: '/autocomplete/<%=usertitle%>/'+_id,
+        type: 'PUT',
+        data: param,
+        success: function(result) {
+            // Do something with the result
+            var html = ""
+            if (result.err) {
+              html += '<div class="alert alert-danger alert-dismissible fade in" role="alert">'
+              html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+              html += '<strong>Failed!</strong> UPDATE :: id:' + _id + ', highlight:' + checked
+              html += '</div>'
 
+            } else {
+              html += '<div class="alert alert-success alert-dismissible fade in" role="alert">'
+              html += '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>'
+              html += '<strong>Success!</strong> UPDATE :: id:' + _id + ', highlight:' + checked
+              html += '</div>'
+
+            }
+            $("#alertdiv").html(html)
+
+        },
+        error:function(request,status,error){
+            console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+        }
+    });
   }
 
 
   function clickAdd() {
     if (parseInt($("#inputcount").val()) > 1000) {
-      alert("1000개 이상의 값은 입력할 수 없습니다...")
-      $("#inputcount").val("1000")
+      alert("1000개 이상의 값은 입력할 수 없습니다...");
+      $("#inputcount").val("1000");
       return;
     }
     var param = {
