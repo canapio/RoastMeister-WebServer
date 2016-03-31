@@ -30,6 +30,13 @@ app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser.json()); // get information from html forms
 app.use(bodyParser.urlencoded({ extended: true }));
 
+process.on('uncaughtException', function (err) {
+ 	console.log('Caught exception: ' + err);
+ // 추후 trace를 하게 위해서 err.stack 을 사용하여 logging하시기 바랍니다.
+ // Published story에서 beautifule logging winston 참조
+});
+
+
 app.set('view engine', 'ejs'); // set up ejs for templating
 
 
